@@ -8,11 +8,11 @@ class UserController extends Controller
 {
     public function register(Request $request)
     {
-        return 'register user';
+        var_dump($request->all());
     }
 
     public function login(Request $request)
     {
-        return 'login user';
+        var_dump($request->all());
     }
 }
