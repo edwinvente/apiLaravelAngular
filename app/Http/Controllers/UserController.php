@@ -35,7 +35,8 @@ class UserController extends Controller
                 ];
             }else{
                 //validacion exitosa, guardar registro
-                $pwd = password_hash($params->password, PASSWORD_BCRYPT, ['cost' => 4]);
+                $pwd = hash('sha256', $params->password);
+
 
                 $user = new User();
                 $user->name = $params_array['name'];
@@ -69,6 +70,35 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        var_dump($request->all());
+        $jwtAuth = new \JwtAuth();
+
+        //recibir los datos por post
+        $json = $request->input('json', null);
+        $params = json_decode($json);
+        $params_array = json_decode($json, true);
+        //validar los datos
+        $validate = \Validator::make($params_array, [
+            'email'     => 'required|email',
+            'password'  => 'required'
+        ]);
+        
+        if ($validate->fails()) {
+            $signup = [
+                'status'    => 'error',
+                'code'      => 404,
+                'message'   => 'El usuario no se ha podido identificar',
+                'errors'    => $validate->errors()
+            ];
+        }else{
+           
+            $pwd = hash('sha256', $params->password);
+            $signup = $jwtAuth->signup($params->email, $pwd);
+
+            if (!empty($params->gettoken)) {
+                $signup = $jwtAuth->signup($params->email, $pwd, true);
+            }
+        }
+
+        return response()->json($signup, 200);
     }
 }
